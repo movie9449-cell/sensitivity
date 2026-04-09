@@ -1,0 +1,196 @@
+﻿<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>괴롭힘 인지 감수성 점검(근로자용)</title>
+  <style>
+    :root { --bg:#f8f6ef; --card:#fffdfa; --ink:#1f2937; --muted:#6b7280; --brand:#0f766e; --line:#e5e7eb; --soft:#d1fae5; }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family:"Pretendard","Noto Sans KR","Malgun Gothic",sans-serif; color:var(--ink); background:var(--bg); }
+    .wrap { max-width:980px; margin:0 auto; padding:20px 14px 40px; }
+    .hero { background:linear-gradient(135deg,#0f766e,#115e59); color:#fff; border-radius:14px; padding:18px; }
+    .hero h1 { margin:0 0 6px; font-size:1.45rem; }
+    .hero p { margin:0; font-size:0.93rem; opacity:.95; }
+    .panel { margin-top:14px; background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px; }
+    .meta { display:grid; gap:8px; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); }
+    label { font-size:.9rem; font-weight:700; }
+    input[type=text], input[type=date] { width:100%; margin-top:6px; border:1px solid #cbd5e1; border-radius:8px; padding:8px 10px; }
+    .hint { margin:10px 0 0; font-size:.86rem; color:var(--muted); }
+    .group { margin-top:18px; border-top:1px dashed #cbd5e1; padding-top:12px; }
+    .group h2 { margin:0 0 10px; font-size:1.02rem; color:#0f766e; }
+    .q { border:1px solid #e2e8f0; border-radius:10px; padding:10px; margin-bottom:8px; }
+    .q p { margin:0 0 6px; font-size:.92rem; }
+    .scale { display:grid; gap:6px; grid-template-columns:repeat(5, minmax(0, 1fr)); }
+    .scale label { font-weight:500; border:1px solid #d1d5db; border-radius:999px; padding:6px 8px; font-size:.84rem; cursor:pointer; text-align:center; display:flex; align-items:center; justify-content:center; }
+    .scale input { margin-right:4px; }
+    .actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; }
+    button { border:none; border-radius:8px; padding:9px 12px; font-weight:700; cursor:pointer; }
+    .primary { background:#0f766e; color:#fff; }
+    .secondary { background:#e5e7eb; }
+    .print { background:#fef3c7; color:#92400e; }
+    .result { display:none; margin-top:16px; border-top:2px solid #cbd5e1; padding-top:12px; }
+    .score { background:var(--soft); border-left:5px solid #0f766e; border-radius:8px; padding:10px; }
+    .lvl { font-weight:800; }
+    @media (max-width: 900px) {
+      .wrap { padding:16px 12px 28px; }
+      .hero { padding:14px; }
+      .hero h1 { font-size:1.2rem; }
+      .hero p { font-size:.88rem; }
+      .panel { padding:12px; }
+      .meta { grid-template-columns:1fr; }
+      .q p { font-size:.9rem; line-height:1.45; }
+      .scale { grid-template-columns:repeat(3, minmax(0, 1fr)); }
+      .actions { flex-direction:column; }
+      .actions button { width:100%; min-height:42px; }
+    }
+    @media (max-width: 520px) {
+      .scale { grid-template-columns:repeat(2, minmax(0, 1fr)); }
+      .scale label { min-height:38px; font-size:.82rem; }
+      input[type=text], input[type=date] { min-height:40px; }
+    }
+    @media print { .actions,.hint { display:none; } body { background:#fff; } }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="hero">
+      <h1>괴롭힘 인지 감수성 점검(근로자용)</h1>
+      <p>대상: 전 직원 자가점검. 본인의 상황 인식과 대응 준비도를 확인하세요.</p>
+    </section>
+
+    <section class="panel">
+      <div class="meta">
+        <div><label for="team">소속(선택)</label><input id="team" type="text" placeholder="예: 영업팀" /></div>
+        <div><label for="name">이름(선택)</label><input id="name" type="text" placeholder="익명 가능" /></div>
+        <div><label for="date">점검일</label><input id="date" type="date" /></div>
+      </div>
+      <p class="hint">1 전혀 아니다 / 2 아니다 / 3 보통 / 4 그렇다 / 5 매우 그렇다</p>
+
+      <div id="questions"></div>
+
+      <div class="actions">
+        <button class="primary" id="calcBtn">결과 보기</button>
+        <button class="secondary" id="resetBtn">초기화</button>
+        <button class="print" id="printBtn">인쇄/저장</button>
+      </div>
+
+      <section class="result" id="result">
+        <div class="score" id="score"></div>
+        <div id="byGroup"></div>
+        <h3>개인 맞춤 안내</h3>
+        <ul id="feedback"></ul>
+      </section>
+    </section>
+  </div>
+
+  <script>
+    const groups = [
+      { key:"core", title:"1) 법적 판단요건 인식", items:[
+        "행위자의 지위·관계상 우위(직급, 인사권, 집단 영향력 포함)가 괴롭힘 판단에서 중요하다는 점을 알고 있다.",
+        "업무상 필요성이 없는 지시·언행은 괴롭힘에 해당할 수 있음을 알고 있다.",
+        "반복적·지속적 행위는 괴롭힘 판단에 불리하게 작용할 수 있음을 알고 있다.",
+        "정신적 고통이나 근무환경 악화도 피해로 인정될 수 있음을 알고 있다."
+      ]},
+      { key:"types", title:"2) 행위별 체크리스트 인식(강의자료 반영)", items:[
+        "업무능력·성과를 공개적으로 폄하하거나 조롱하는 행위를 괴롭힘 위험 신호로 인식한다.",
+        "교육·승진·보상·일상적 대우에서 특정인만 배제/차별하는 행위를 문제로 본다.",
+        "과도한 업무, 반복적 곤란업무 부여, 업무 미부여·허드렛일 강요를 구별할 수 있다.",
+        "중요한 정보 제공 또는 의사결정 과정에서의 배제를 괴롭힘 신호로 본다.",
+        "휴가·복지 사용 방해, 과도한 감시(CCTV 등), 사적 심부름 지시를 부당행위로 인식한다.",
+        "부서이동·퇴사 강요, 부당 인사조치, 업무 비품/네트워크 차단을 위험 신호로 인식한다."
+      ]},
+      { key:"abuse", title:"3) 모욕·강요·배제 행위 인식", items:[
+        "험담·소문 유포, 폭언·욕설·협박, 공개 망신 주기를 괴롭힘 행위로 판단할 수 있다.",
+        "신체적 위협·폭행은 즉시 대응이 필요한 중대한 괴롭힘임을 알고 있다.",
+        "회식·음주·흡연 참여 강요를 조직문화가 아닌 괴롭힘 위험으로 본다.",
+        "집단 따돌림(단톡방 배제, 관계 배제 등)도 괴롭힘에 해당할 수 있음을 이해한다."
+      ]},
+      { key:"action", title:"4) 대응 및 보호 준비", items:[
+        "문제 상황에서 일시·장소·발언·목격자 중심으로 사건기록을 남길 수 있다.",
+        "메신저·메일·문서 등 객관 증거를 안전하게 보관할 수 있다.",
+        "회사 내 신고/상담 창구(고충처리, 인사 등)를 알고 있다.",
+        "긴급 상황에서 즉시 도움 요청(동료·가족·전문기관)할 수 있다."
+      ]}
+    ];
+
+    const qRoot = document.getElementById('questions');
+    const result = document.getElementById('result');
+    const scoreBox = document.getElementById('score');
+    const byGroup = document.getElementById('byGroup');
+    const feedback = document.getElementById('feedback');
+    document.getElementById('date').valueAsDate = new Date();
+
+    function render(){
+      let idx=0;
+      groups.forEach(g=>{
+        const sec=document.createElement('section'); sec.className='group';
+        sec.innerHTML=`<h2>${g.title}</h2>`;
+        g.items.forEach(item=>{
+          idx++;
+          const div=document.createElement('div'); div.className='q';
+          let radios='';
+          for(let i=1;i<=5;i++) radios += `<label><input type="radio" name="q${idx}" value="${i}">${i}점</label>`;
+          div.innerHTML=`<p>${idx}. ${item}</p><div class="scale">${radios}</div>`;
+          sec.appendChild(div);
+        });
+        qRoot.appendChild(sec);
+      });
+    }
+
+    function avg(a){ return a.reduce((x,y)=>x+y,0)/a.length; }
+    function level(v){ if(v<3) return '도움 필요'; if(v<4) return '보통'; return '양호'; }
+
+    function collect(){
+      let idx=0; const out={};
+      for(const g of groups){
+        const arr=[];
+        for(let i=0;i<g.items.length;i++){
+          idx++;
+          const c=document.querySelector(`input[name="q${idx}"]:checked`);
+          if(!c) return null;
+          arr.push(Number(c.value));
+        }
+        out[g.key]=arr;
+      }
+      return out;
+    }
+
+    function buildTips(gs){
+      const tips=[];
+      if(gs.core<3.5) tips.push('법적 판단요건 인식을 보강하세요. 우위성, 업무상 필요성, 반복성, 피해영향 4요건을 기준으로 보시면 판단이 빨라집니다.');
+      if(gs.types<3.5) tips.push('행위별 체크리스트 인식이 낮습니다. 차별, 부당지시, 정보배제, 비품/네트워크 차단 항목을 중심으로 다시 점검해 보세요.');
+      if(gs.abuse<3.5) tips.push('모욕·강요·배제 행위에 대한 민감도를 높이세요. 폭언·협박·공개망신·회식강요·집단따돌림은 대표 위험 신호입니다.');
+      if(gs.action<3.5) tips.push('대응 준비를 강화하세요. 사건일지 작성과 증거보존, 신고창구 확인을 먼저 해두면 도움이 됩니다.');
+      if(!tips.length) tips.push('전반적으로 양호합니다. 실제 상황에서는 안전확인, 객관기록, 2차 가해 방지를 우선하세요.');
+      return tips;
+    }
+
+    document.getElementById('calcBtn').addEventListener('click',()=>{
+      const data=collect(); if(!data){ alert('모든 문항에 응답해 주세요.'); return; }
+      const gs={}; let all=[];
+      Object.entries(data).forEach(([k,v])=>{ gs[k]=avg(v); all=all.concat(v); });
+      const total=avg(all);
+
+      scoreBox.innerHTML=`<div><strong>종합 평균:</strong> ${total.toFixed(2)} / 5.00</div><div class="lvl">종합 수준: ${level(total)}</div>`;
+      byGroup.innerHTML=`<p>영역별 평균</p><ul>
+        <li>법적 판단요건 인식: ${gs.core.toFixed(2)}</li>
+        <li>행위별 체크리스트 인식: ${gs.types.toFixed(2)}</li>
+        <li>모욕·강요·배제 행위 인식: ${gs.abuse.toFixed(2)}</li>
+        <li>대응 및 보호 준비: ${gs.action.toFixed(2)}</li>
+      </ul>`;
+      feedback.innerHTML=buildTips(gs).map(t=>`<li>${t}</li>`).join('');
+      result.style.display='block';
+    });
+
+    document.getElementById('resetBtn').addEventListener('click',()=>{
+      document.querySelectorAll('input[type="radio"]').forEach(x=>x.checked=false);
+      result.style.display='none';
+    });
+    document.getElementById('printBtn').addEventListener('click',()=>window.print());
+
+    render();
+  </script>
+</body>
+</html>
+
