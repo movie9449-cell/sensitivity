@@ -1,0 +1,194 @@
+﻿<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>괴롭힘 인지 감수성 점검(사용자용)</title>
+  <style>
+    :root { --bg:#f5f7fb; --card:#ffffff; --ink:#1f2937; --muted:#6b7280; --brand:#0b5cab; --line:#e5e7eb; --soft:#e8f1ff; }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family:"Pretendard","Noto Sans KR","Malgun Gothic",sans-serif; color:var(--ink); background:var(--bg); }
+    .wrap { max-width:980px; margin:0 auto; padding:20px 14px 40px; }
+    .hero { background:linear-gradient(135deg,#0b5cab,#093b6f); color:#fff; border-radius:14px; padding:18px; }
+    .hero h1 { margin:0 0 6px; font-size:1.45rem; }
+    .hero p { margin:0; font-size:0.93rem; opacity:.95; }
+    .panel { margin-top:14px; background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px; }
+    .meta { display:grid; gap:8px; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); }
+    label { font-size:.9rem; font-weight:700; }
+    input[type=text], input[type=date] { width:100%; margin-top:6px; border:1px solid #cbd5e1; border-radius:8px; padding:8px 10px; }
+    .hint { margin:10px 0 0; font-size:.86rem; color:var(--muted); }
+    .group { margin-top:18px; border-top:1px dashed #cbd5e1; padding-top:12px; }
+    .group h2 { margin:0 0 10px; font-size:1.02rem; color:#0b5cab; }
+    .q { border:1px solid #e2e8f0; border-radius:10px; padding:10px; margin-bottom:8px; }
+    .q p { margin:0 0 6px; font-size:.92rem; }
+    .scale { display:grid; gap:6px; grid-template-columns:repeat(5, minmax(0, 1fr)); }
+    .scale label { font-weight:500; border:1px solid #d1d5db; border-radius:999px; padding:6px 8px; font-size:.84rem; cursor:pointer; text-align:center; display:flex; align-items:center; justify-content:center; }
+    .scale input { margin-right:4px; }
+    .actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; }
+    button { border:none; border-radius:8px; padding:9px 12px; font-weight:700; cursor:pointer; }
+    .primary { background:#0b5cab; color:#fff; }
+    .secondary { background:#e5e7eb; }
+    .print { background:#dbeafe; color:#1e3a8a; }
+    .result { display:none; margin-top:16px; border-top:2px solid #cbd5e1; padding-top:12px; }
+    .score { background:var(--soft); border-left:5px solid #0b5cab; border-radius:8px; padding:10px; }
+    .lvl { font-weight:800; }
+    @media (max-width: 900px) {
+      .wrap { padding:16px 12px 28px; }
+      .hero { padding:14px; }
+      .hero h1 { font-size:1.2rem; }
+      .hero p { font-size:.88rem; }
+      .panel { padding:12px; }
+      .meta { grid-template-columns:1fr; }
+      .q p { font-size:.9rem; line-height:1.45; }
+      .scale { grid-template-columns:repeat(3, minmax(0, 1fr)); }
+      .actions { flex-direction:column; }
+      .actions button { width:100%; min-height:42px; }
+    }
+    @media (max-width: 520px) {
+      .scale { grid-template-columns:repeat(2, minmax(0, 1fr)); }
+      .scale label { min-height:38px; font-size:.82rem; }
+      input[type=text], input[type=date] { min-height:40px; }
+    }
+    @media print { .actions,.hint { display:none; } body { background:#fff; } }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="hero">
+      <h1>괴롭힘 인지 감수성 점검(사용자용)</h1>
+      <p>대상: 관리자, 인사/노무, 고충처리 담당자. 1~5점으로 응답 후 조직 대응 수준을 확인하세요.</p>
+    </section>
+
+    <section class="panel">
+      <div class="meta">
+        <div><label for="org">회사/부서</label><input id="org" type="text" placeholder="예: 운영본부" /></div>
+        <div><label for="role">직책</label><input id="role" type="text" placeholder="예: 팀장" /></div>
+        <div><label for="date">점검일</label><input id="date" type="date" /></div>
+      </div>
+      <p class="hint">1 전혀 아니다 / 2 아니다 / 3 보통 / 4 그렇다 / 5 매우 그렇다</p>
+
+      <div id="questions"></div>
+
+      <div class="actions">
+        <button class="primary" id="calcBtn">결과 보기</button>
+        <button class="secondary" id="resetBtn">초기화</button>
+        <button class="print" id="printBtn">인쇄/저장</button>
+      </div>
+
+      <section class="result" id="result">
+        <div class="score" id="score"></div>
+        <div id="byGroup"></div>
+        <h3>회사 개선 권고</h3>
+        <ul id="feedback"></ul>
+      </section>
+    </section>
+  </div>
+
+  <script>
+    const groups = [
+      { key:"policy", title:"1) 제도/기준", items:[
+        "직장 내 괴롭힘 판단 기준(우위, 업무상 필요성, 피해 영향)을 사내 기준으로 명확히 안내한다.",
+        "괴롭힘·성희롱 신고 절차, 보호조치, 비밀유지 원칙을 직원이 쉽게 확인할 수 있다.",
+        "관리자 대상 예방교육이 정기적으로 이루어진다.",
+        "보복성 인사·불이익 금지 원칙이 실제로 집행된다."
+      ]},
+      { key:"detect", title:"2) 조기 인지", items:[
+        "공개 모욕, 반복 배제, 부당 지시 등 위험 신호를 관리자들이 구체적으로 인지한다.",
+        "부서별 고충 징후(퇴사 증가, 병가 증가, 특정인 평가 급락)를 정기 점검한다.",
+        "피해 호소를 '개인 성향 문제'로 단정하지 않고 사실확인을 우선한다.",
+        "익명 제보가 들어와도 무시하지 않고 초기 확인 절차를 가동한다."
+      ]},
+      { key:"respond", title:"3) 조사/조치", items:[
+        "신고 접수 후 일정 내 초기 보호조치(분리, 업무조정 등)를 검토한다.",
+        "조사 시 일시·장소·발언·목격자 중심으로 객관자료를 확보한다.",
+        "당사자/참고인 조사에서 2차 가해(비난, 낙인)를 방지한다.",
+        "판단 결과에 맞춰 징계, 조직개선, 재발방지 교육까지 연결한다."
+      ]},
+      { key:"culture", title:"4) 조직문화", items:[
+        "회식·음주·근무외 지시 강요 문화가 조직 내에서 용인되지 않는다.",
+        "성과압박 상황에서도 인격존중 원칙을 우선한다.",
+        "상급자의 언행에 대해 하급자가 문제제기할 심리적 안전이 있다.",
+        "괴롭힘 발생 부서에 대한 사후 모니터링을 운영한다."
+      ]}
+    ];
+
+    const qRoot = document.getElementById('questions');
+    const result = document.getElementById('result');
+    const scoreBox = document.getElementById('score');
+    const byGroup = document.getElementById('byGroup');
+    const feedback = document.getElementById('feedback');
+    document.getElementById('date').valueAsDate = new Date();
+
+    function render(){
+      let idx=0;
+      groups.forEach(g=>{
+        const sec=document.createElement('section'); sec.className='group';
+        sec.innerHTML=`<h2>${g.title}</h2>`;
+        g.items.forEach(item=>{
+          idx++;
+          const div=document.createElement('div'); div.className='q';
+          let radios='';
+          for(let i=1;i<=5;i++) radios += `<label><input type="radio" name="q${idx}" value="${i}">${i}점</label>`;
+          div.innerHTML=`<p>${idx}. ${item}</p><div class="scale">${radios}</div>`;
+          sec.appendChild(div);
+        });
+        qRoot.appendChild(sec);
+      });
+    }
+
+    function avg(a){ return a.reduce((x,y)=>x+y,0)/a.length; }
+    function level(v){ if(v<3) return '개선 필요'; if(v<4) return '보통'; return '우수'; }
+
+    function collect(){
+      let idx=0; const out={};
+      for(const g of groups){
+        const arr=[];
+        for(let i=0;i<g.items.length;i++){
+          idx++;
+          const c=document.querySelector(`input[name="q${idx}"]:checked`);
+          if(!c) return null;
+          arr.push(Number(c.value));
+        }
+        out[g.key]=arr;
+      }
+      return out;
+    }
+
+    function buildTips(gs){
+      const tips=[];
+      if(gs.policy<3.5) tips.push('규정/절차 접근성을 높이세요. 사내 포털 첫 화면에 신고·보호 절차를 고정 배치하는 방식이 효과적입니다.');
+      if(gs.detect<3.5) tips.push('관리자 조기인지 훈련이 필요합니다. 실제 사례 기반 위험신호 체크 교육을 분기 단위로 운영하세요.');
+      if(gs.respond<3.5) tips.push('조사 프로토콜 표준화가 필요합니다. 접수-보호-조사-판단-재발방지 단계별 템플릿을 마련하세요.');
+      if(gs.culture<3.5) tips.push('조직문화 개선이 필요합니다. 회식/야간연락/공개망신 금지 메시지를 리더십이 반복적으로 선언하세요.');
+      if(!tips.length) tips.push('전반적으로 양호합니다. 고위험 부서 모니터링과 신규 관리자 온보딩 교육을 유지하세요.');
+      return tips;
+    }
+
+    document.getElementById('calcBtn').addEventListener('click',()=>{
+      const data=collect(); if(!data){ alert('모든 문항에 응답해 주세요.'); return; }
+      const gs={}; let all=[];
+      Object.entries(data).forEach(([k,v])=>{ gs[k]=avg(v); all=all.concat(v); });
+      const total=avg(all);
+
+      scoreBox.innerHTML=`<div><strong>종합 평균:</strong> ${total.toFixed(2)} / 5.00</div><div class="lvl">종합 수준: ${level(total)}</div>`;
+      byGroup.innerHTML=`<p>영역별 평균</p><ul>
+        <li>제도/기준: ${gs.policy.toFixed(2)}</li>
+        <li>조기 인지: ${gs.detect.toFixed(2)}</li>
+        <li>조사/조치: ${gs.respond.toFixed(2)}</li>
+        <li>조직문화: ${gs.culture.toFixed(2)}</li>
+      </ul>`;
+      feedback.innerHTML=buildTips(gs).map(t=>`<li>${t}</li>`).join('');
+      result.style.display='block';
+    });
+
+    document.getElementById('resetBtn').addEventListener('click',()=>{
+      document.querySelectorAll('input[type="radio"]').forEach(x=>x.checked=false);
+      result.style.display='none';
+    });
+    document.getElementById('printBtn').addEventListener('click',()=>window.print());
+
+    render();
+  </script>
+</body>
+</html>
+
