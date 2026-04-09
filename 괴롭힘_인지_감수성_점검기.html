@@ -1,0 +1,403 @@
+﻿<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>괴롭힘 인지 감수성 점검기</title>
+  <style>
+    :root {
+      --bg: #f7f4ee;
+      --card: #fffdf9;
+      --ink: #1f2937;
+      --muted: #6b7280;
+      --brand: #0f766e;
+      --brand-soft: #d1fae5;
+      --warn: #b45309;
+      --danger: #b91c1c;
+      --line: #e5e7eb;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Pretendard", "Noto Sans KR", "Malgun Gothic", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 20% 10%, #fef3c7 0, transparent 30%),
+        radial-gradient(circle at 90% 20%, #dbeafe 0, transparent 28%),
+        var(--bg);
+      line-height: 1.5;
+    }
+
+    .wrap {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 24px 16px 40px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #0f766e, #115e59);
+      color: #fff;
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 8px 24px rgba(15, 118, 110, 0.22);
+    }
+
+    .hero h1 {
+      margin: 0 0 8px;
+      font-size: clamp(1.25rem, 2.6vw, 1.8rem);
+    }
+
+    .hero p {
+      margin: 0;
+      opacity: 0.96;
+      font-size: 0.96rem;
+    }
+
+    .panel {
+      margin-top: 16px;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+    }
+
+    .meta {
+      display: grid;
+      gap: 10px;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    }
+
+    label { font-weight: 600; font-size: 0.92rem; }
+
+    input[type="text"], input[type="date"] {
+      width: 100%;
+      margin-top: 6px;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      padding: 9px 10px;
+      font-size: 0.92rem;
+      background: #fff;
+    }
+
+    .hint {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    .group {
+      margin-top: 20px;
+      border-top: 2px dashed #d1d5db;
+      padding-top: 16px;
+    }
+
+    .group h2 {
+      margin: 0 0 10px;
+      font-size: 1.05rem;
+      color: #0b4f4a;
+    }
+
+    .q {
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 10px;
+      background: #fff;
+    }
+
+    .q p {
+      margin: 0 0 8px;
+      font-size: 0.94rem;
+    }
+
+    .scale {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      font-size: 0.87rem;
+    }
+
+    .scale label {
+      font-weight: 500;
+      border: 1px solid #d1d5db;
+      border-radius: 999px;
+      padding: 5px 10px;
+      background: #fafafa;
+      cursor: pointer;
+    }
+
+    .scale input { margin-right: 4px; }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+
+    button {
+      border: none;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 0.92rem;
+    }
+
+    .primary { background: var(--brand); color: #fff; }
+    .secondary { background: #e5e7eb; color: #111827; }
+    .ghost { background: #fef3c7; color: #92400e; }
+
+    .result {
+      margin-top: 18px;
+      display: none;
+      border-top: 2px solid #cbd5e1;
+      padding-top: 16px;
+    }
+
+    .score-box {
+      background: var(--brand-soft);
+      border-left: 6px solid var(--brand);
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 10px;
+    }
+
+    .level {
+      font-weight: 800;
+      font-size: 1rem;
+    }
+
+    .level.low { color: var(--danger); }
+    .level.mid { color: var(--warn); }
+    .level.high { color: var(--brand); }
+
+    .feedback {
+      margin: 0;
+      padding-left: 18px;
+      color: #374151;
+      font-size: 0.92rem;
+    }
+
+    @media print {
+      body { background: #fff; }
+      .actions, .hint { display: none; }
+      .panel { box-shadow: none; border: 1px solid #ddd; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="hero">
+      <h1>괴롭힘 인지 감수성 점검기</h1>
+      <p>배포용 자가진단 도구입니다. 각 문항에 대해 현재 본인의 인식 수준을 1점(전혀 아니다)~5점(매우 그렇다)로 응답하세요.</p>
+    </section>
+
+    <section class="panel">
+      <div class="meta">
+        <div>
+          <label for="org">소속</label>
+          <input id="org" type="text" placeholder="예: 인사팀" />
+        </div>
+        <div>
+          <label for="name">이름(선택)</label>
+          <input id="name" type="text" placeholder="익명 가능" />
+        </div>
+        <div>
+          <label for="date">점검일</label>
+          <input id="date" type="date" />
+        </div>
+      </div>
+      <p class="hint">점수 기준: 1 전혀 아니다 / 2 아니다 / 3 보통 / 4 그렇다 / 5 매우 그렇다</p>
+
+      <div id="questions"></div>
+
+      <div class="actions">
+        <button class="primary" id="calcBtn">결과 보기</button>
+        <button class="secondary" id="resetBtn">초기화</button>
+        <button class="ghost" id="printBtn">인쇄/저장</button>
+      </div>
+
+      <section class="result" id="result">
+        <div class="score-box" id="scoreSummary"></div>
+        <div id="categorySummary"></div>
+        <h3>맞춤 피드백</h3>
+        <ul class="feedback" id="feedback"></ul>
+      </section>
+    </section>
+  </div>
+
+  <script>
+    const groups = [
+      {
+        title: "1) 괴롭힘 개념 인식",
+        key: "concept",
+        items: [
+          "직장 내 괴롭힘은 신체폭행이 없어도 성립할 수 있음을 알고 있다.",
+          "업무상 우위(직급, 인사권, 집단 영향력)가 있으면 괴롭힘 판단에서 중요하다는 점을 이해한다.",
+          "같은 행동도 목적·필요성·방법이 부당하면 괴롭힘이 될 수 있음을 알고 있다.",
+          "반복적 배제·조롱·차별 대우도 괴롭힘에 해당할 수 있음을 알고 있다."
+        ]
+      },
+      {
+        title: "2) 상황 판단 감수성",
+        key: "judgment",
+        items: [
+          "공개석상에서 특정인의 업무능력/성과를 조롱하는 행위는 위험하다고 판단한다.",
+          "교육·회의·정보 공유에서 특정인만 반복 배제하는 행위를 문제로 인식한다.",
+          "정당한 근거 없이 평가·승진·보상에서 불리하게 대우하면 괴롭힘 가능성을 의심한다.",
+          "업무와 무관하거나 과도한 지시, 휴일·근무외 지시 강요를 경계한다.",
+          "회식·음주 참여를 사실상 강요하는 분위기를 괴롭힘 신호로 본다."
+        ]
+      },
+      {
+        title: "3) 피해 영향 공감",
+        key: "empathy",
+        items: [
+          "피해자가 느끼는 불안·수치심·위축감도 중요한 피해라는 점에 동의한다.",
+          "‘농담’이나 ‘조직문화’라는 이유로 상대의 고통이 사라지지 않는다는 점을 이해한다.",
+          "한 번의 사건이라도 강도가 크면 중대한 괴롭힘이 될 수 있음을 인식한다.",
+          "나와 친한 동료의 행동이라도 피해 관점에서 다시 볼 수 있다."
+        ]
+      },
+      {
+        title: "4) 대응 역량",
+        key: "response",
+        items: [
+          "괴롭힘 의심 상황에서 사실관계(일시·장소·발언·목격자)를 기록할 수 있다.",
+          "피해자에게 비난보다 안전확인과 지원안내를 먼저 해야 함을 알고 있다.",
+          "내부 신고절차(고충처리, 인사, 조사)를 알고 있다.",
+          "증거 보존(메신저, 메일, 문서, 캡처)의 중요성을 알고 있다."
+        ]
+      }
+    ];
+
+    const qsRoot = document.getElementById("questions");
+    const resultEl = document.getElementById("result");
+    const scoreSummary = document.getElementById("scoreSummary");
+    const categorySummary = document.getElementById("categorySummary");
+    const feedbackEl = document.getElementById("feedback");
+
+    document.getElementById("date").valueAsDate = new Date();
+
+    function renderQuestions() {
+      let n = 0;
+      groups.forEach((g) => {
+        const sec = document.createElement("section");
+        sec.className = "group";
+        sec.innerHTML = `<h2>${g.title}</h2>`;
+
+        g.items.forEach((text) => {
+          n += 1;
+          const q = document.createElement("div");
+          q.className = "q";
+
+          let radios = "";
+          for (let i = 1; i <= 5; i += 1) {
+            radios += `<label><input type="radio" name="q${n}" value="${i}"> ${i}점</label>`;
+          }
+
+          q.innerHTML = `<p>${n}. ${text}</p><div class="scale">${radios}</div>`;
+          sec.appendChild(q);
+        });
+
+        qsRoot.appendChild(sec);
+      });
+    }
+
+    function avg(arr) {
+      return arr.reduce((a, b) => a + b, 0) / arr.length;
+    }
+
+    function levelBy(score) {
+      if (score < 3.0) return ["개선 필요", "low"];
+      if (score < 4.0) return ["보통", "mid"];
+      return ["우수", "high"];
+    }
+
+    function collectScores() {
+      let idx = 0;
+      const result = {};
+
+      for (const g of groups) {
+        const scores = [];
+        for (let i = 0; i < g.items.length; i += 1) {
+          idx += 1;
+          const picked = document.querySelector(`input[name=\"q${idx}\"]:checked`);
+          if (!picked) return null;
+          scores.push(Number(picked.value));
+        }
+        result[g.key] = scores;
+      }
+
+      return result;
+    }
+
+    function buildFeedback(groupAverages) {
+      const notes = [];
+
+      if (groupAverages.concept < 3.5) notes.push("개념 인식 보강이 필요합니다. 괴롭힘 성립요건(우위·업무상 필요성·피해영향)을 사례 중심으로 재학습해 보세요.");
+      if (groupAverages.judgment < 3.5) notes.push("상황 판단 감수성이 낮게 나타났습니다. 공개조롱·반복배제·부당지시·회식강요 시나리오 토론을 권장합니다.");
+      if (groupAverages.empathy < 3.5) notes.push("피해 공감 영역 강화가 필요합니다. ‘의도’보다 ‘상대가 받은 영향’을 먼저 확인하는 대화 훈련이 도움이 됩니다.");
+      if (groupAverages.response < 3.5) notes.push("대응 역량이 낮습니다. 사건기록 양식, 신고 절차, 증거보존 가이드를 함께 숙지하세요.");
+
+      if (notes.length === 0) {
+        notes.push("전 영역이 안정적으로 높습니다. 실제 사건에서는 사실확인, 2차 가해 방지, 비밀유지 원칙을 계속 유지해 주세요.");
+      }
+
+      return notes;
+    }
+
+    document.getElementById("calcBtn").addEventListener("click", () => {
+      const scores = collectScores();
+      if (!scores) {
+        alert("모든 문항에 응답해 주세요.");
+        return;
+      }
+
+      const avgs = {};
+      let all = [];
+      Object.entries(scores).forEach(([k, arr]) => {
+        avgs[k] = avg(arr);
+        all = all.concat(arr);
+      });
+
+      const totalAvg = avg(all);
+      const [lvText, lvClass] = levelBy(totalAvg);
+
+      scoreSummary.innerHTML = `
+        <div><strong>종합 평균:</strong> ${totalAvg.toFixed(2)} / 5.00</div>
+        <div class="level ${lvClass}">종합 수준: ${lvText}</div>
+      `;
+
+      categorySummary.innerHTML = `
+        <p>영역별 평균</p>
+        <ul>
+          <li>괴롭힘 개념 인식: ${avgs.concept.toFixed(2)}</li>
+          <li>상황 판단 감수성: ${avgs.judgment.toFixed(2)}</li>
+          <li>피해 영향 공감: ${avgs.empathy.toFixed(2)}</li>
+          <li>대응 역량: ${avgs.response.toFixed(2)}</li>
+        </ul>
+      `;
+
+      const notes = buildFeedback(avgs);
+      feedbackEl.innerHTML = notes.map((n) => `<li>${n}</li>`).join("");
+
+      resultEl.style.display = "block";
+      resultEl.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+
+    document.getElementById("resetBtn").addEventListener("click", () => {
+      document.querySelectorAll('input[type="radio"]').forEach((el) => { el.checked = false; });
+      resultEl.style.display = "none";
+    });
+
+    document.getElementById("printBtn").addEventListener("click", () => window.print());
+
+    renderQuestions();
+  </script>
+</body>
+</html>

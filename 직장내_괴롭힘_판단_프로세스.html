@@ -1,0 +1,529 @@
+﻿<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>직장 내 괴롭힘 판단 프로세스</title>
+  <style>
+    :root {
+      --bg: #f6f4ee;
+      --card: #fffdfa;
+      --ink: #1f2937;
+      --muted: #6b7280;
+      --line: #e5e7eb;
+      --brand: #0f766e;
+      --brand2: #115e59;
+      --ok: #065f46;
+      --warn: #b45309;
+      --danger: #b91c1c;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Pretendard", "Noto Sans KR", "Malgun Gothic", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 5% 10%, #fde68a55, transparent 30%),
+        radial-gradient(circle at 90% 8%, #bfdbfe55, transparent 25%),
+        var(--bg);
+    }
+    .wrap { max-width: 980px; margin: 0 auto; padding: 20px 14px 40px; }
+    .hero {
+      background: linear-gradient(135deg, var(--brand), var(--brand2));
+      color: #fff;
+      border-radius: 14px;
+      padding: 18px;
+    }
+    .hero h1 { margin: 0 0 6px; font-size: clamp(1.2rem, 2.4vw, 1.7rem); }
+    .hero p { margin: 0; font-size: .93rem; opacity: .96; }
+    .panel {
+      margin-top: 14px;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 14px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, .05);
+    }
+    .meta { display: grid; gap: 8px; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
+    label { font-weight: 700; font-size: .9rem; }
+    input[type="text"], input[type="date"], textarea, select {
+      width: 100%;
+      margin-top: 6px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 9px 10px;
+      font-size: .9rem;
+      background: #fff;
+    }
+    textarea { min-height: 80px; resize: vertical; }
+    .sec { margin-top: 18px; border-top: 1px dashed #cbd5e1; padding-top: 12px; }
+    .sec h2 { margin: 0 0 8px; font-size: 1.03rem; color: #0f766e; }
+    .hint { margin: 0 0 10px; color: var(--muted); font-size: .86rem; }
+    .grid2 { display: grid; gap: 10px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .box {
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 10px;
+      background: #fff;
+    }
+    .checklist { display: grid; gap: 8px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .checklist label {
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-weight: 500;
+      font-size: .9rem;
+      display: flex;
+      gap: 7px;
+      align-items: flex-start;
+      background: #fff;
+    }
+    .checklist input { margin-top: 2px; }
+    .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+    button {
+      border: none;
+      border-radius: 8px;
+      padding: 10px 13px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: .9rem;
+    }
+    .primary { background: var(--brand); color: #fff; }
+    .secondary { background: #e5e7eb; }
+    .print { background: #fef3c7; color: #92400e; }
+    .result { display: none; margin-top: 16px; border-top: 2px solid #cbd5e1; padding-top: 12px; }
+    .summary {
+      border-left: 5px solid var(--brand);
+      background: #d1fae5;
+      border-radius: 8px;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+    .level { font-weight: 800; }
+    .level.low { color: var(--ok); }
+    .level.mid { color: var(--warn); }
+    .level.high { color: var(--danger); }
+    .chip { display: inline-block; padding: 3px 8px; border-radius: 999px; font-size: .8rem; margin-right: 6px; margin-bottom: 6px; background: #e5e7eb; }
+    @media (max-width: 900px) {
+      .wrap { padding: 16px 12px 30px; }
+      .panel { padding: 12px; }
+      .meta, .grid2, .checklist { grid-template-columns: 1fr; }
+      .actions { flex-direction: column; }
+      .actions button { width: 100%; min-height: 42px; }
+    }
+    @media print { .actions { display: none; } body { background: #fff; } }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="hero">
+      <h1>직장 내 괴롭힘 판단 프로세스</h1>
+      <p>직장 내 괴롭힘 관련 사실관계를 단계별로 점검할 수 있습니다.</p>
+    </section>
+
+    <section class="panel">
+      <div class="meta">
+        <div><label for="org">소속(선택)</label><input id="org" type="text" placeholder="예: 경영지원팀" /></div>
+        <div><label for="name">작성자(선택)</label><input id="name" type="text" placeholder="익명 가능" /></div>
+        <div><label for="date">점검일</label><input id="date" type="date" /></div>
+      </div>
+
+      <section class="sec">
+        <h2>1) 기초요건</h2>
+        <p class="hint">1~3항목은 모두 해당, 4항목은 관계 검토가 필요합니다.</p>
+        <div class="grid2">
+          <div class="box">
+            <label for="w5">상시근로자 5인 이상 사업장</label>
+            <select id="w5">
+              <option value="yes">예</option>
+              <option value="no">아니오</option>
+              <option value="unk">모름</option>
+            </select>
+          </div>
+          <div class="box">
+            <label for="actorType">행위자 유형</label>
+            <select id="actorType">
+              <option value="employer">사용자</option>
+              <option value="worker">근로자</option>
+            </select>
+          </div>
+          <div class="box">
+            <label for="victimType">피해자 유형</label>
+            <select id="victimType">
+              <option value="worker">근로기준법상 근로자</option>
+              <option value="special">특수고용/프리랜서 등</option>
+              <option value="other">기타</option>
+            </select>
+          </div>
+          <div class="box">
+            <label for="bizRelation">행위자-피해자 사업장 관계</label>
+            <select id="bizRelation">
+              <option value="same">동일 사업장</option>
+              <option value="dispatch">파견 관계</option>
+              <option value="subcontract">도급(원·하청) 관계</option>
+              <option value="otherdiff">서로 다른 사업장(기타)</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec">
+        <h2>2) 행위 장소</h2>
+        <p class="hint">1~4 중 하나 이상이면 충족 가능성이 높습니다.</p>
+        <div class="checklist" id="placeChecks"></div>
+      </section>
+
+      <section class="sec">
+        <h2>3) 행위요건① 우위성 + 우위의 이용</h2>
+        <div class="grid2">
+          <div class="box">
+            <label for="statusSup">지위 우위성</label>
+            <select id="statusSup">
+              <option value="yes">있음 (지휘·직급상 우위)</option>
+              <option value="no">없음</option>
+              <option value="unk">판단 어려움</option>
+            </select>
+          </div>
+          <div class="box">
+            <label for="relSup">관계 우위성</label>
+            <select id="relSup">
+              <option value="yes">있음 (연령/성별/근속/전문성/조직영향력 등)</option>
+              <option value="no">없음</option>
+              <option value="unk">판단 어려움</option>
+            </select>
+          </div>
+          <div class="box">
+            <label for="supUse">우위 이용 여부</label>
+            <select id="supUse">
+              <option value="yes">우위를 이용한 행위로 보임</option>
+              <option value="no">우위와 무관한 행위</option>
+              <option value="unk">판단 어려움</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec">
+        <h2>4) 행위요건② 업무상 적정 범위 일탈</h2>
+        <div class="grid2">
+          <div class="box">
+            <label for="jobRelated">업무관련성</label>
+            <select id="jobRelated">
+              <option value="yes">업무 관련 상황에서 발생</option>
+              <option value="no">업무와 무관한 개인적 용무/갈등</option>
+            </select>
+          </div>
+          <div class="box">
+            <label for="jobNeed">업무상 필요성/사회통념상 상당성</label>
+            <select id="jobNeed">
+              <option value="noNeed">업무상 불필요하거나 상당성 결여</option>
+              <option value="needed">필요한 범위로 보임</option>
+              <option value="unk">판단 어려움</option>
+            </select>
+          </div>
+        </div>
+        <p class="hint" style="margin-top:10px;">행위 유형(강의자료 기반)을 함께 체크하면 종합판단에 도움이 됩니다.</p>
+        <div class="checklist" id="behaviorTypeChecks"></div>
+      </section>
+
+      <section class="sec">
+        <h2>5) 행위요건③ 신체·정신 고통 또는 근무환경 악화</h2>
+        <div class="grid2">
+          <div class="box">
+            <label for="painPhysical">신체적 고통</label>
+            <select id="painPhysical"><option value="yes">있음</option><option value="no">없음</option></select>
+          </div>
+          <div class="box">
+            <label for="painMental">정신적 고통(스트레스, 불안 등)</label>
+            <select id="painMental"><option value="yes">있음</option><option value="no">없음</option></select>
+          </div>
+          <div class="box">
+            <label for="envWorse">근무환경 악화</label>
+            <select id="envWorse"><option value="yes">있음</option><option value="no">없음</option></select>
+          </div>
+          <div class="box">
+            <label for="reasonableStd">보통 사람 기준에서도 고통/악화가 인정됨</label>
+            <select id="reasonableStd"><option value="yes">예</option><option value="no">아니오</option><option value="unk">판단 어려움</option></select>
+          </div>
+          <div class="box">
+            <label for="otherCause">다른 주된 원인(지병 등) 존재</label>
+            <select id="otherCause"><option value="no">아니오</option><option value="yes">예</option><option value="unk">판단 어려움</option></select>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec">
+        <h2>6) 종합 판단 보정요소</h2>
+        <div class="grid2">
+          <div class="box">
+            <label for="duration">행위 지속성</label>
+            <select id="duration">
+              <option value="once">1회성</option>
+              <option value="repeat">반복/지속</option>
+            </select>
+          </div>
+          <div class="box">
+            <label for="severity">행위 강도</label>
+            <select id="severity">
+              <option value="low">경미</option>
+              <option value="mid">중간</option>
+              <option value="high">중대(폭행·협박·강요 등)</option>
+            </select>
+          </div>
+          <div class="box">
+            <label for="response">피해자 반응</label>
+            <select id="response">
+              <option value="reject">명시적 거부/문제제기 있음</option>
+              <option value="passive">소극적 반응 또는 추정 반응</option>
+              <option value="none">반응 확인 어려움</option>
+            </select>
+          </div>
+          <div class="box">
+            <label for="evidence">객관 증거(문자·메일·녹취·목격자)</label>
+            <select id="evidence">
+              <option value="yes">있음</option>
+              <option value="some">일부 있음</option>
+              <option value="no">없음</option>
+            </select>
+          </div>
+        </div>
+        <label for="memo">메모(선택)</label>
+        <textarea id="memo" placeholder="행위 일시, 장소, 발언, 목격자, 전후 맥락 등을 기록하세요."></textarea>
+      </section>
+
+      <div class="actions">
+        <button class="primary" id="calcBtn">판단 결과 보기</button>
+        <button class="secondary" id="resetBtn">초기화</button>
+        <button class="print" id="printBtn">인쇄/저장</button>
+      </div>
+
+      <section class="result" id="result">
+        <div class="summary" id="summary"></div>
+        <div id="chips"></div>
+        <h3>권고 조치</h3>
+        <ul id="tips"></ul>
+      </section>
+    </section>
++  </div>
+
+  <script>
+    const placeItems = [
+      "근무지에서 발생",
+      "외근/출장 등 업무수행 과정에서 발생",
+      "회식/기업 행사 장소에서 발생",
+      "사내 메신저·SNS 등 온라인에서 발생",
+      "개인적인 사모임 중 발생",
+      "익명 게시판(블라인드 등)에서 발생"
+    ];
+
+    const behaviorTypeItems = [
+      "업무능력·성과를 인정하지 않거나 공개적으로 폄하/조롱",
+      "교육·승진·보상·일상적 대우에서 차별",
+      "휴일·근무시간 외 업무지시",
+      "과도한 업무 부여 또는 업무에서 배제",
+      "업무와 무관한 허드렛일·사적 심부름 지시",
+      "업무 관련 중요 정보/의사결정 과정에서 배제",
+      "휴가·병가·복지 사용을 방해",
+      "과도한 감시(CCTV·동선·업무모니터링)",
+      "전보·부서이동·퇴사 강요 또는 부당 인사조치",
+      "험담·소문 유포, 공개적 망신주기",
+      "폭언·모욕·협박 또는 신체적 위협",
+      "의사와 무관한 회식·음주·흡연 참여 강요",
+      "집단 따돌림(단톡방/관계 배제 포함)",
+      "업무 필수 비품·네트워크 제공 제한/차단",
+      "부당한 업무지시(내용 기입)",
+      "과도한 업무 지적"
+    ];
+
+    const placeWrap = document.getElementById("placeChecks");
+    const behaviorTypeWrap = document.getElementById("behaviorTypeChecks");
+
+    placeItems.forEach((txt, i) => {
+      const lb = document.createElement("label");
+      lb.innerHTML = `<input type="checkbox" name="place" value="${i + 1}"><span>${i + 1}. ${txt}</span>`;
+      placeWrap.appendChild(lb);
+    });
+
+    behaviorTypeItems.forEach((txt, i) => {
+      const lb = document.createElement("label");
+      if (txt.startsWith("부당한 업무지시")) {
+        lb.innerHTML = `
+          <input type="checkbox" name="behaviorType" value="${i + 1}">
+          <span>${i + 1}. 부당한 업무지시 (
+            <input id="unfairInstructionDetail" type="text" placeholder="내용 입력" style="width:180px; margin:0 4px; padding:4px 6px; font-size:.82rem; border:1px solid #cbd5e1; border-radius:6px;">
+          )</span>
+        `;
+      } else {
+        lb.innerHTML = `<input type="checkbox" name="behaviorType" value="${i + 1}"><span>${i + 1}. ${txt}</span>`;
+      }
+      behaviorTypeWrap.appendChild(lb);
+    });
+
+    document.getElementById("date").valueAsDate = new Date();
+
+    function getVal(id) { return document.getElementById(id).value; }
+
+    function evaluate() {
+      const w5 = getVal("w5");
+      const actorType = getVal("actorType");
+      const victimType = getVal("victimType");
+      const bizRelation = getVal("bizRelation");
+
+      const places = [...document.querySelectorAll('input[name="place"]:checked')].map(el => Number(el.value));
+      const placeOk = places.some(p => [1, 2, 3, 4].includes(p));
+
+      const behaviorTypes = [...document.querySelectorAll('input[name="behaviorType"]:checked')].map(el => Number(el.value));
+      const behaviorTypeCount = behaviorTypes.length;
+      const unfairInstructionDetail = document.getElementById("unfairInstructionDetail").value.trim();
+
+      const statusSup = getVal("statusSup");
+      const relSup = getVal("relSup");
+      const supUse = getVal("supUse");
+      const superiority = ((statusSup === "yes" || relSup === "yes") && supUse === "yes");
+
+      const jobRelated = getVal("jobRelated");
+      const jobNeed = getVal("jobNeed");
+      const properRange = (jobRelated === "yes" && jobNeed === "noNeed");
+
+      const painPhysical = getVal("painPhysical");
+      const painMental = getVal("painMental");
+      const envWorse = getVal("envWorse");
+      const reasonableStd = getVal("reasonableStd");
+      const otherCause = getVal("otherCause");
+      const harmExists = (painPhysical === "yes" || painMental === "yes" || envWorse === "yes");
+      const harmReq = (harmExists && reasonableStd === "yes" && otherCause !== "yes");
+
+      const duration = getVal("duration");
+      const severity = getVal("severity");
+      const response = getVal("response");
+      const evidence = getVal("evidence");
+
+      const baseEligible =
+        (w5 === "yes") &&
+        (actorType === "employer" || actorType === "worker") &&
+        (victimType === "worker");
+
+      let gateStatus = "pass";
+      let gateMsg = "";
+      if (!baseEligible) {
+        gateStatus = "fail";
+        gateMsg = "기초요건 미충족(법 적용대상 여부 불명확)";
+      } else if (bizRelation === "subcontract" || bizRelation === "otherdiff") {
+        gateStatus = "fail";
+        gateMsg = "기초요건 미충족(도급관계/서로 다른 사업장: 직장 내 괴롭힘 적용 제외)";
+      } else if (w5 === "unk" || victimType !== "worker") {
+        gateStatus = "review";
+        gateMsg = "기초요건 확인 필요";
+      } else {
+        gateMsg = "기초요건 충족 가능";
+      }
+
+      let coreScore = 0;
+      if (placeOk) coreScore += 1;
+      if (superiority) coreScore += 1;
+      if (properRange) coreScore += 1;
+      if (harmReq) coreScore += 1;
+
+      let level = "low";
+      let levelText = "낮음";
+
+      if (gateStatus === "fail") {
+        level = "low";
+        levelText = "적용제외";
+      } else if (coreScore >= 3) {
+        level = "high";
+        levelText = "높음";
+      } else if (coreScore === 2) {
+        level = "mid";
+        levelText = "중간";
+      }
+
+      if (level !== "high") {
+        if (severity === "high" && harmReq && properRange) {
+          level = "high";
+          levelText = "높음";
+        } else if (duration === "repeat" && coreScore >= 2) {
+          level = "high";
+          levelText = "높음";
+        }
+      }
+
+      if (gateStatus === "review" && level === "high") {
+        levelText = "높음(관계 법리 추가검토)";
+      } else if (gateStatus === "review" && level !== "high") {
+        level = "mid";
+        levelText = "중간(관계 법리 추가검토)";
+      }
+
+      return {
+        gateMsg, level, levelText, coreScore,
+        placeOk, superiority, properRange, harmReq,
+        duration, severity, response, evidence, places, behaviorTypeCount, unfairInstructionDetail
+      };
+    }
+
+    function buildTips(r) {
+      const tips = [];
+      if (!r.placeOk) tips.push("행위 장소 요건이 약합니다. 근무지/업무수행/회식·행사/사내온라인 해당성부터 확인하세요.");
+      if (!r.superiority) tips.push("우위성 또는 우위 이용 입증이 약합니다. 지휘관계, 직급, 조직 영향력 자료를 확보하세요.");
+      if (!r.properRange) tips.push("업무상 적정범위 일탈 판단이 약합니다. 업무 관련성, 필요성 부재, 사회통념상 상당성 결여를 정리하세요.");
+      if (!r.harmReq) tips.push("피해요건 입증이 약합니다. 진단기록, 상담기록, 업무지장 자료를 확보해 보세요.");
+
+      if (r.level === "high") {
+        tips.push("괴롭힘 해당 가능성이 높습니다. 공식 신고 및 초기 보호조치(분리, 접촉제한, 근무조정)를 요청하세요.");
+      } else if (r.level === "mid") {
+        tips.push("괴롭힘 의심 단계입니다. 사실관계와 증거를 추가 수집한 뒤 재평가를 권장합니다.");
+      } else {
+        tips.push("현재 정보로는 해당 가능성이 낮거나 법 적용요건이 불명확합니다. 요건 확인 후 재점검하세요.");
+      }
+
+      if (r.duration === "repeat") tips.push("반복·지속성은 판단에 불리하게 작용하므로 날짜별 사건일지를 유지하세요.");
+      if (r.severity === "high") tips.push("폭행·협박·강요 등 중대 행위는 1회라도 인정 가능성이 있습니다.");
+      if (r.evidence === "no") tips.push("객관 증거가 부족합니다. 메신저/메일/녹취/목격자 진술을 정리하세요.");
+      if (r.response === "reject") tips.push("피해자의 거부·문제제기 반응은 판단에 의미가 있으므로 기록을 보존하세요.");
+      if (r.behaviorTypeCount >= 4) tips.push("행위 유형이 복합적으로 나타납니다. 단일 사건보다 패턴 단위로 정리해 제출하세요.");
+      if (r.unfairInstructionDetail) tips.push(`부당한 업무지시 기입 내용: ${r.unfairInstructionDetail}`);
+      return tips;
+    }
+
+    document.getElementById("calcBtn").addEventListener("click", () => {
+      const r = evaluate();
+      const summary = document.getElementById("summary");
+      const chips = document.getElementById("chips");
+      const tips = document.getElementById("tips");
+      const result = document.getElementById("result");
+
+      summary.innerHTML = `
+        <div><strong>기초요건:</strong> ${r.gateMsg}</div>
+        <div><strong>핵심요건 충족:</strong> ${r.coreScore} / 4</div>
+        <div><strong>행위 유형 체크:</strong> ${r.behaviorTypeCount} / ${behaviorTypeItems.length}</div>
+        <div class="level ${r.level}">종합 판단: ${r.levelText}</div>
+      `;
+
+      const chipData = [
+        ["장소요건", r.placeOk],
+        ["우위성+이용", r.superiority],
+        ["업무상 적정범위 일탈", r.properRange],
+        ["고통/환경악화", r.harmReq]
+      ];
+      chips.innerHTML = chipData.map(([k, v]) => `<span class="chip">${k}: ${v ? "충족" : "미흡"}</span>`).join("");
+      tips.innerHTML = buildTips(r).map(t => `<li>${t}</li>`).join("");
+
+      result.style.display = "block";
+      result.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+
+    document.getElementById("resetBtn").addEventListener("click", () => {
+      document.querySelectorAll("input[type='checkbox']").forEach(el => el.checked = false);
+      document.querySelectorAll("select").forEach(el => el.selectedIndex = 0);
+      document.getElementById("date").valueAsDate = new Date();
+      document.getElementById("memo").value = "";
+      document.getElementById("unfairInstructionDetail").value = "";
+      document.getElementById("result").style.display = "none";
+    });
+
+    document.getElementById("printBtn").addEventListener("click", () => window.print());
+  </script>
+</body>
+</html>
+
